@@ -1,7 +1,8 @@
 <script>
 	import '../app.css';
 	import { LeftMenuBar, LoginModal } from '$lib';
-	import { showLoginModal, closeLoginModal } from '$lib/stores/auth';
+	import { showLoginModal, closeLoginModal, initializeAuth } from '$lib/stores/auth';
+	import { onMount } from 'svelte';
 	
 	let { children } = $props();
 	
@@ -15,6 +16,11 @@
 	function handleCloseLoginModal() {
 		closeLoginModal();
 	}
+	
+	// Initialize auth state on app start
+	onMount(async () => {
+		await initializeAuth();
+	});
 </script>
 
 <div class="min-h-screen bg-transparent">

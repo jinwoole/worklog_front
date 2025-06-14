@@ -1,6 +1,6 @@
 <script>
 	/**
-	 * @typedef {'primary' | 'secondary' | 'ghost' | 'danger' | 'success'} ButtonVariant
+	 * @typedef {'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'purple'} ButtonVariant
 	 * @typedef {'sm' | 'md' | 'lg'} ButtonSize
 	 */
 
@@ -36,7 +36,8 @@
 			secondary: 'glass-button-secondary',
 			ghost: 'glass-button-ghost text-gray-700 hover:text-gray-900',
 			danger: 'glass-button-danger text-white',
-			success: 'glass-button-success text-white'
+			success: 'glass-button-success text-white',
+			purple: 'glass-button-purple text-white'
 		};
 		return variants[variant] || variants.primary;
 	}
@@ -56,7 +57,7 @@
 </script>
 
 <button 
-	class={buttonClasses}
+	class="{buttonClasses} {$$restProps.class || ''}"
 	{type}
 	{disabled}
 	on:click={onclick}
