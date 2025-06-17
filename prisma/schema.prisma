@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id              String  @id
+  name            String  @unique(map: "idx_users_name")
+  email           String  @unique(map: "idx_users_email")
+  last_login_at   BigInt?
+  failed_attempts Int?    @default(0)
+  locked_until    BigInt?
+  created_at      BigInt?
+  updated_at      BigInt?
+  
+  password_auth password_auth?
+}
+
+model password_auth {
+  user_id       String @id
+  password_hash String
+  created_at    BigInt?
+  updated_at    BigInt?
+  
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
