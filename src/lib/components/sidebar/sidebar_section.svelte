@@ -32,91 +32,126 @@
   class:pointer-events-none={disabled}
   class:opacity-30={disabled}
 >
-  <div class="relative">
-    <!-- 메인 유리 패널 -->
-    <div 
-      class="relative px-5 py-3.5 rounded-2xl overflow-hidden transition-all duration-300"
-      style="
-        background: {active 
-          ? 'rgba(251, 146, 60, 0.08)' 
-          : 'rgba(255, 255, 255, 0.04)'};
-        backdrop-filter: blur(20px) saturate(1.2);
-        -webkit-backdrop-filter: blur(20px) saturate(1.2);
-        border: 1px solid {active 
-          ? 'rgba(251, 146, 60, 0.2)' 
-          : 'rgba(255, 255, 255, 0.1)'};
-        box-shadow: 
-          inset 0 1px 1px rgba(255, 255, 255, 0.1),
-          0 2px 8px rgba(0, 0, 0, 0.05);
-        transform: {isHovering ? 'translateY(-2px) scale(1.02)' : 'translateY(0) scale(1)'};
-      "
-    >
-      <!-- 전역 빛 반사 효과 -->
+  <div class="relative ice-button-container">
+    <!-- 빛 효과가 끊기지 않도록 하는 외부 컨테이너 -->
+    <div class="absolute inset-0 rounded-xl overflow-visible">
+      <!-- 터키석-코랄 반사 효과 (버튼 경계 밖으로 확장) -->
       <div 
-        class="absolute inset-0 pointer-events-none transition-opacity duration-1000"
+        class="absolute -inset-2 pointer-events-none transition-all duration-500"
         style="
           background: radial-gradient(
             circle at {$mousePosition.x * 100}% {$mousePosition.y * 100}%,
-            rgba(255, 255, 255, {isHovering ? 0.15 : 0.05}) 0%,
+            rgba(6, 182, 212, {isHovering ? 0.12 : 0.05}) 0%,
+            rgba(20, 184, 166, {isHovering ? 0.08 : 0.03}) 25%,
+            rgba(34, 197, 94, {isHovering ? 0.06 : 0.02}) 50%,
+            rgba(251, 146, 60, {isHovering ? 0.04 : 0.01}) 75%,
             transparent 100%
           );
-          opacity: 0.8;
+          opacity: {isHovering ? 1 : 0.6};
+          filter: blur(8px);
+        "
+      ></div>
+    </div>
+    
+    <!-- 입체적 얼음 버튼 베이스 -->
+    <div 
+      class="relative px-4 py-2.5 rounded-xl transition-all duration-300 ice-button"
+      style="
+        background: {active 
+          ? 'rgba(6, 182, 212, 0.08)' 
+          : 'rgba(255, 255, 255, 0.12)'};
+        backdrop-filter: blur(20px) saturate(1.2);
+        -webkit-backdrop-filter: blur(20px) saturate(1.2);
+        border: 1px solid {active 
+          ? 'rgba(6, 182, 212, 0.25)' 
+          : 'rgba(255, 255, 255, 0.30)'};
+        box-shadow: 
+          inset 0 1px 3px rgba(255, 255, 255, 0.4),
+          inset 0 -0.5px 1px rgba(0, 0, 0, 0.02),
+          0 2px 6px rgba(0, 0, 0, 0.04),
+          0 1px 3px rgba(0, 0, 0, 0.02),
+          0 0 12px rgba({active ? '6, 182, 212' : '255, 255, 255'}, {active ? 0.08 : 0.03});
+        transform: {isHovering 
+          ? 'translateY(-1px) scale(1.01)' 
+          : 'translateY(0) scale(1)'};
+      "
+    >
+      <!-- 아름다운 투명도 기반 반사 -->
+      <div 
+        class="absolute -inset-1 pointer-events-none transition-all duration-400 rounded-xl"
+        style="
+          background: radial-gradient(
+            circle at {$mousePosition.x * 100}% {$mousePosition.y * 100}%,
+            rgba(255, 255, 255, {isHovering ? 0.20 : 0.08}) 0%,
+            rgba(255, 255, 255, {isHovering ? 0.12 : 0.04}) 40%,
+            rgba(255, 255, 255, {isHovering ? 0.06 : 0.02}) 70%,
+            transparent 100%
+          );
+          opacity: {isHovering ? 0.9 : 0.6};
         "
       ></div>
       
-      <!-- 호버 시 로컬 하이라이트 -->
-      {#if isHovering}
+      <!-- 액티브 상태 색상 힌트 -->
+      {#if active}
         <div 
-          class="absolute inset-0 pointer-events-none animate-pulse"
+          class="absolute inset-0 pointer-events-none transition-all duration-300 rounded-xl"
           style="
-            background: radial-gradient(
-              circle at center,
-              {active ? 'rgba(251, 146, 60, 0.1)' : 'rgba(255, 255, 255, 0.08)'} 0%,
-              transparent 70%
-            );
+            background: rgba(6, 182, 212, {isHovering ? 0.06 : 0.03});
+            opacity: {isHovering ? 0.8 : 0.5};
           "
         ></div>
       {/if}
       
-      <!-- 상단 광택 -->
+      <!-- 호버 시 부드러운 글로우 -->
+      {#if isHovering}
+        <div 
+          class="absolute inset-0 pointer-events-none rounded-xl"
+          style="
+            background: rgba(255, 255, 255, 0.08);
+            animation: gentle-glow 2s ease-in-out infinite;
+          "
+        ></div>
+      {/if}
+      
+      <!-- 상단 하이라이트 -->
       <div 
-        class="absolute top-0 left-0 right-0 h-1/2 pointer-events-none"
+        class="absolute top-0 left-0 right-0 h-1/3 pointer-events-none"
         style="
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.08) 0%,
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0.08) 50%,
             transparent 100%
           );
+          border-radius: 12px 12px 0 0;
         "
       ></div>
       
       <!-- 텍스트 콘텐츠 -->
       <div 
-        class="relative z-10 font-medium transition-all duration-300"
+        class="relative z-20 font-medium transition-all duration-200"
         style="
           color: {active 
-            ? 'rgba(251, 146, 60, 0.95)' 
-            : 'rgba(255, 255, 255, 0.7)'};
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            ? 'rgba(6, 182, 212, 0.92)' 
+            : 'rgba(30, 30, 30, 0.85)'};
+          text-shadow: 0 0.5px 1px rgba(255, 255, 255, 0.6);
+          font-size: 0.875rem;
         "
-        class:group-hover:text-white={!active}
-        class:group-hover:text-orange-400={active}
+        class:group-hover:text-slate-800={!active}
+        class:group-hover:text-cyan-600={active}
       >
         <slot />
       </div>
     </div>
     
-    <!-- 액티브 상태 글로우 -->
+    <!-- 액티브 상태 미묘한 글로우 -->
     {#if active}
       <div 
-        class="absolute -inset-1 rounded-2xl pointer-events-none -z-10"
+        class="absolute -inset-2 rounded-xl pointer-events-none -z-10"
         style="
-          background: radial-gradient(
-            circle at 50% 50%,
-            rgba(251, 146, 60, 0.15) 0%,
-            transparent 70%
-          );
-          filter: blur(16px);
+          background: rgba(6, 182, 212, 0.04);
+          filter: blur(12px);
+          opacity: 0.7;
         "
       ></div>
     {/if}
@@ -124,19 +159,24 @@
 </a>
 
 <style>
+  /* 버튼 기본 스타일 */
+  .ice-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
   /* 부드러운 포커스 효과 */
   a:focus-visible {
     outline: none;
   }
   
-  a:focus-visible > div::before {
+  a:focus-visible .ice-button::before {
     content: '';
     position: absolute;
-    inset: -3px;
-    border-radius: 20px;
-    border: 2px solid rgba(251, 146, 60, 0.5);
+    inset: -2px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(59, 130, 246, 0.5);
     opacity: 0;
-    animation: focus-fade 0.3s ease-out forwards;
+    animation: focus-fade 0.2s ease-out forwards;
   }
   
   @keyframes focus-fade {
@@ -146,31 +186,36 @@
   }
   
   /* 클릭 애니메이션 */
-  a:active > div > div:first-child {
-    transform: scale(0.98) !important;
+  a:active .ice-button {
+    transform: translateY(0px) scale(0.99) !important;
+    box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+      inset 0 -0.5px 1px rgba(0, 0, 0, 0.03),
+      0 1px 3px rgba(0, 0, 0, 0.06) !important;
   }
   
   /* 호버 텍스트 스타일 */
-  .group-hover\:text-white:hover {
-    color: rgba(255, 255, 255, 0.9) !important;
+  .group-hover\:text-slate-800:hover {
+    color: rgba(30, 41, 59, 0.9) !important;
   }
   
-  .group-hover\:text-orange-400:hover {
-    color: rgba(251, 146, 60, 1) !important;
+  .group-hover\:text-cyan-600:hover {
+    color: rgba(8, 145, 178, 0.95) !important;
   }
   
-  /* 부드러운 펄스 애니메이션 */
-  @keyframes pulse {
+  /* 부드러운 글로우 애니메이션 */
+  @keyframes gentle-glow {
     0%, 100% {
-      opacity: 1;
+      opacity: 0.6;
     }
     50% {
-      opacity: 0.8;
+      opacity: 1;
     }
   }
   
-  .animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* 버튼 컨테이너 오버플로우 설정 */
+  .ice-button-container {
+    overflow: visible;
   }
   
   /* 모션 감소 설정 */
@@ -178,6 +223,10 @@
     * {
       animation: none !important;
       transition: none !important;
+    }
+    
+    .ice-button {
+      transform: none !important;
     }
   }
 </style>
