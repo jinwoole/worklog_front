@@ -2,15 +2,25 @@
 <script lang="ts">
   import { onMount, setContext } from 'svelte';
   import { writable } from 'svelte/store';
+  import { userStore, updateUser } from '$lib/stores/user';
   import Sidebar from '$lib/components/sidebar/sidebar.svelte';
   import SidebarSection from '$lib/components/sidebar/sidebar_section.svelte';
+  import UserSection from '$lib/components/sidebar/user_section.svelte';
   import '../app.css';
+  
+  export let data;
+  
+  // 서버에서 받은 초기 사용자 데이터를 스토어에 설정
+  $: if (data?.user !== undefined) {
+    updateUser(data.user);
+  }
   
   // 성능 최적화된 마우스 위치 스토어 (throttled)
   const mousePosition = writable({ x: 0.5, y: 0.5 });
   setContext('mousePosition', mousePosition);
   
   let containerElement: HTMLElement;
+  let sidebarOpen = true; // 기본적으로 사이드바 열림
   
   onMount(() => {
     let throttleTimer: number;
@@ -35,7 +45,7 @@
   });
 </script>
 
-<div class="glass-container" bind:this={containerElement}>
+<div class="glass-container flex" bind:this={containerElement}>
   <!-- 화이트 배경 레이어들 -->
   <div class="fixed inset-0 -z-50">
     <!-- 기본 백색 배경 -->
@@ -43,52 +53,49 @@
       class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50"
     ></div>
     
-    <!-- 바닷물 반사 효과 1 - 큰 파동 -->
+    <!-- 동적 기하학적 패턴 1 -->
     <div 
-      class="absolute inset-0 ocean-reflection ocean-wave-1"
+      class="absolute inset-0 dynamic-pattern pattern-1"
       style="
-        background: radial-gradient(
-          ellipse 800px 400px at {$mousePosition.x * 100}% {$mousePosition.y * 100}%,
-          rgba(59, 130, 246, 0.08) 0%,
-          rgba(147, 197, 253, 0.04) 30%,
-          transparent 60%
-        );
+        background-image: 
+          radial-gradient(circle at 20% 20%, rgba(0,0,0,0.015) 1px, transparent 1px),
+          radial-gradient(circle at 80% 80%, rgba(0,0,0,0.015) 1px, transparent 1px);
+        background-size: 60px 60px, 40px 40px;
+        transform: translate({$mousePosition.x * 8}px, {$mousePosition.y * 8}px);
       "
     ></div>
     
-    <!-- 바닷물 반사 효과 2 - 작은 파동 -->
+    <!-- 동적 기하학적 패턴 2 -->
     <div 
-      class="absolute inset-0 ocean-reflection ocean-wave-2"
+      class="absolute inset-0 dynamic-pattern pattern-2"
       style="
-        background: radial-gradient(
-          ellipse 600px 300px at {($mousePosition.x * 0.8 + 0.2) * 100}% {($mousePosition.y * 0.7 + 0.3) * 100}%,
-          rgba(34, 197, 94, 0.06) 0%,
-          rgba(187, 247, 208, 0.03) 40%,
-          transparent 70%
-        );
+        background-image: 
+          linear-gradient(45deg, rgba(0,0,0,0.01) 1px, transparent 1px),
+          linear-gradient(-45deg, rgba(0,0,0,0.01) 1px, transparent 1px);
+        background-size: 25px 25px;
+        transform: translate({$mousePosition.x * -4}px, {$mousePosition.y * -4}px) rotate({$mousePosition.x * 0.3}deg);
       "
     ></div>
     
-    <!-- 바닷물 반사 효과 3 - 미세한 반짝임 */
+    <!-- 미묘한 노이즈 텍스처 -->
     <div 
-      class="absolute inset-0 ocean-sparkle"
+      class="absolute inset-0 noise-texture"
       style="
-        background: radial-gradient(
-          circle 200px at {($mousePosition.x * 1.2 - 0.1) * 100}% {($mousePosition.y * 1.1 - 0.05) * 100}%,
-          rgba(16, 185, 129, 0.12) 0%,
-          rgba(110, 231, 183, 0.06) 25%,
-          transparent 50%
-        );
+        background-image: 
+          radial-gradient(circle at {$mousePosition.x * 100}% {$mousePosition.y * 100}%, 
+            rgba(0,0,0,0.012) 0%, 
+            transparent 25%);
+        background-size: 150px 150px;
       "
     ></div>
     
-    <!-- 햇빛 캐스케이드 효과 -->
-    <div class="absolute inset-0 light-cascade"></div>
+    <!-- 부드러운 그라데이션 오버레이 -->
+    <div class="absolute inset-0 gradient-overlay"></div>
   </div>
   
   <!-- 사이드바 -->
-  <Sidebar isOpen={true}>
-    <SidebarSection href="/" active={true}>
+  <Sidebar bind:isOpen={sidebarOpen}>
+    <SidebarSection href="/">
       Home
     </SidebarSection>
     <SidebarSection href="/login">
@@ -100,10 +107,13 @@
     <SidebarSection href="/settings">
       Settings
     </SidebarSection>
+    
+    <!-- 유저 섹션 - 사이드바 최하단 -->
+    <UserSection />
   </Sidebar>
   
   <!-- 메인 콘텐츠 영역 -->
-  <main class="main-content">
+  <main class="main-content flex-1" class:sidebar-open={sidebarOpen}>
     <!-- 콘텐츠 글래스 패널 -->
     <div class="content-glass">
       <!-- 미묘한 빛 반사 효과 -->
@@ -133,7 +143,7 @@
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    background: #fafafa;
+    background: #ffffff;
   }
   
   .glass-container {
@@ -142,94 +152,96 @@
     overflow: hidden;
   }
   
-  /* 바닷물 반사 효과 애니메이션 */
-  .ocean-reflection {
-    animation: oceanFlow 8s ease-in-out infinite;
-    transform-origin: center;
+  /* 동적 패턴 애니메이션 */
+  .dynamic-pattern {
+    transition: transform 0.1s ease-out;
+    will-change: transform;
   }
   
-  .ocean-wave-1 {
-    animation-delay: 0s;
-    animation-duration: 12s;
+  .pattern-1 {
+    animation: patternFloat1 15s ease-in-out infinite;
   }
   
-  .ocean-wave-2 {
-    animation-delay: -4s;
-    animation-duration: 16s;
+  .pattern-2 {
+    animation: patternFloat2 20s ease-in-out infinite;
   }
   
-  .ocean-sparkle {
-    animation: sparkle 6s ease-in-out infinite;
-    animation-delay: -2s;
+  .noise-texture {
+    animation: noiseShift 12s linear infinite;
   }
   
-  /* 햇빛 캐스케이드 효과 */
-  .light-cascade {
+  /* 그라데이션 오버레이 */
+  .gradient-overlay {
     background: 
-      linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.02) 50%, transparent 70%),
-      linear-gradient(-45deg, transparent 40%, rgba(16, 185, 129, 0.015) 60%, transparent 80%);
-    animation: lightShimmer 20s linear infinite;
+      linear-gradient(45deg, transparent 30%, rgba(0,0,0,0.003) 50%, transparent 70%),
+      linear-gradient(-45deg, transparent 40%, rgba(0,0,0,0.002) 60%, transparent 80%);
+    animation: gradientShimmer 25s linear infinite;
   }
   
-  @keyframes oceanFlow {
+  @keyframes patternFloat1 {
     0%, 100% { 
-      transform: translateX(0) translateY(0) scale(1);
-      opacity: 0.8;
+      transform: translate(0, 0) rotate(0deg) scale(1);
     }
     25% { 
-      transform: translateX(10px) translateY(-5px) scale(1.02);
-      opacity: 1;
+      transform: translate(2px, -1px) rotate(0.2deg) scale(1.01);
     }
     50% { 
-      transform: translateX(-5px) translateY(8px) scale(0.98);
-      opacity: 0.9;
+      transform: translate(-1px, 2px) rotate(-0.1deg) scale(0.99);
     }
     75% { 
-      transform: translateX(-8px) translateY(-3px) scale(1.01);
-      opacity: 0.95;
+      transform: translate(-2px, -1px) rotate(0.1deg) scale(1.005);
     }
   }
   
-  @keyframes sparkle {
+  @keyframes patternFloat2 {
     0%, 100% { 
-      transform: scale(1) rotate(0deg);
-      opacity: 0.6;
+      transform: translate(0, 0) rotate(0deg) scale(1);
     }
     33% { 
-      transform: scale(1.1) rotate(120deg);
-      opacity: 1;
+      transform: translate(-1px, 1px) rotate(-0.15deg) scale(1.005);
     }
     66% { 
-      transform: scale(0.9) rotate(240deg);
-      opacity: 0.8;
+      transform: translate(1px, -2px) rotate(0.1deg) scale(0.995);
     }
   }
   
-  @keyframes lightShimmer {
+  @keyframes noiseShift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes gradientShimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
   }
   
   .main-content {
-    margin-left: 14rem;
     min-height: 100vh;
     padding: 2rem;
     position: relative;
+    transition: margin-left 0.3s ease-out;
+  }
+  
+  .main-content.sidebar-open {
+    margin-left: 14rem; /* 사이드바 너비(14rem = 224px) 만큼 밀어냄 */
   }
   
   .content-glass {
     position: relative;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(20px) saturate(1.1);
     -webkit-backdrop-filter: blur(20px) saturate(1.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 24px;
     padding: 2rem;
     min-height: calc(100vh - 4rem);
     box-shadow: 
-      inset 0 1px 1px rgba(255, 255, 255, 0.6),
-      0 20px 40px rgba(0, 0, 0, 0.1),
-      0 4px 12px rgba(59, 130, 246, 0.05);
+      inset 0 1px 1px rgba(255, 255, 255, 0.8),
+      0 20px 40px rgba(0, 0, 0, 0.06),
+      0 4px 12px rgba(0, 0, 0, 0.02);
     overflow: hidden;
   }
   
@@ -265,31 +277,34 @@
     );
   }
   
-  /* 글로벌 텍스트 스타일 - 어두운 텍스트로 변경 */
+  /* 글로벌 텍스트 스타일 - 더 어두운 텍스트 */
   :global(*) {
-    color: rgba(30, 30, 30, 0.9);
+    color: rgba(15, 15, 15, 0.9);
   }
   
   :global(h1, h2, h3, h4, h5, h6) {
-    color: rgba(15, 15, 15, 0.95);
+    color: rgba(10, 10, 10, 0.95);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
   
   :global(a) {
-    color: rgba(59, 130, 246, 0.8);
+    color: rgba(25, 25, 25, 0.8);
     text-decoration: none;
     transition: color 0.2s ease;
   }
   
   :global(a:hover) {
-    color: rgba(59, 130, 246, 1);
+    color: rgba(10, 10, 10, 1);
   }
   
-  /* 반응형 디자인 */
-  @media (max-width: 768px) {
+  /* 모바일 전용 스타일 */
+  @media (max-width: 1023px) {
+    .main-content.sidebar-open {
+      margin-left: 0; /* 모바일에서는 오버레이 방식 */
+    }
+    
     .main-content {
-      margin-left: 0;
       padding: 1rem;
     }
     
@@ -299,9 +314,16 @@
     }
   }
   
+  /* 데스크톱에서만 사이드바 공간 확보 */
+  @media (min-width: 1024px) {
+    .main-content.sidebar-open {
+      margin-left: 14rem;
+    }
+  }
+  
   /* 성능 최적화 */
-  .ocean-reflection,
-  .light-cascade,
+  .dynamic-pattern,
+  .gradient-overlay,
   .glass-reflection {
     will-change: transform, opacity;
     backface-visibility: hidden;
@@ -312,6 +334,10 @@
     :global(*) {
       animation: none !important;
       transition: none !important;
+    }
+    
+    .dynamic-pattern {
+      transform: none !important;
     }
   }
 </style>
