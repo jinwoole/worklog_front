@@ -1,17 +1,16 @@
 <script lang="ts">
   import { enhance } from '$app/forms'
-  import { goto } from '$app/navigation'
-  import { fetchCurrentUser } from '$lib/stores/user'
+  import { goto, invalidateAll } from '$app/navigation'
   import type { ActionData } from './$types'
 
   export let form: ActionData
 
-  // 로그인 성공 후 사용자 정보 업데이트
+  // 로그인 성공 후 모든 로드 함수 재실행
   const handleSubmit = () => {
     return async ({ result }) => {
       if (result.type === 'redirect') {
-        // 로그인 성공 시 사용자 정보를 스토어에 업데이트
-        await fetchCurrentUser()
+        // 모든 로드 함수를 다시 실행하여 사용자 정보 업데이트
+        await invalidateAll()
         goto(result.location || '/')
       }
     }

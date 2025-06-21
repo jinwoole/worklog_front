@@ -29,25 +29,3 @@ export async function logout() {
     return false;
   }
 }
-
-// 현재 사용자 정보를 서버에서 가져오기
-export async function fetchCurrentUser() {
-  try {
-    const response = await fetch('/api/user/current', {
-      credentials: 'include'
-    });
-    
-    if (response.ok) {
-      const user = await response.json();
-      userStore.set(user);
-      return user;
-    } else {
-      userStore.set(null);
-      return null;
-    }
-  } catch (error) {
-    console.error('Failed to fetch user:', error);
-    userStore.set(null);
-    return null;
-  }
-}

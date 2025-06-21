@@ -3,16 +3,20 @@
   import { onMount, setContext } from 'svelte';
   import { writable } from 'svelte/store';
   import { userStore, updateUser } from '$lib/stores/user';
-  import Sidebar from '$lib/components/sidebar/sidebar.svelte';
-  import SidebarSection from '$lib/components/sidebar/sidebar_section.svelte';
-  import UserSection from '$lib/components/sidebar/user_section.svelte';
+  import { page } from '$app/stores';
+  import UserSection from '$lib/components/topbar/user_section.svelte';
   import '../app.css';
   
   export let data;
   
   // 서버에서 받은 초기 사용자 데이터를 스토어에 설정
-  $: if (data?.user !== undefined) {
-    updateUser(data.user);
+  $: {
+    // data가 변경될 때마다 사용자 정보 업데이트
+    console.log('Layout data changed:', data?.user);
+    if (data?.user !== undefined) {
+      updateUser(data.user);
+      console.log('User store updated:', data.user);
+    }
   }
   
   // 성능 최적화된 마우스 위치 스토어 (throttled)
@@ -20,7 +24,6 @@
   setContext('mousePosition', mousePosition);
   
   let containerElement: HTMLElement;
-  let sidebarOpen = true; // 기본적으로 사이드바 열림
   
   onMount(() => {
     let throttleTimer: number;
@@ -43,98 +46,55 @@
       if (throttleTimer) clearTimeout(throttleTimer);
     };
   });
+  
+  // 네비게이션 항목들
+  const navItems = [
+    { href: '/', label: 'Home' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/settings', label: 'Settings' }
+  ];
 </script>
 
-<div class="glass-container flex" bind:this={containerElement}>
-  <!-- 화이트 배경 레이어들 -->
-  <div class="fixed inset-0 -z-50">
-    <!-- 기본 백색 배경 -->
-    <div 
-      class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50"
-    ></div>
-    
-    <!-- 동적 기하학적 패턴 1 -->
-    <div 
-      class="absolute inset-0 dynamic-pattern pattern-1"
-      style="
-        background-image: 
-          radial-gradient(circle at 20% 20%, rgba(0,0,0,0.015) 1px, transparent 1px),
-          radial-gradient(circle at 80% 80%, rgba(0,0,0,0.015) 1px, transparent 1px);
-        background-size: 60px 60px, 40px 40px;
-        transform: translate({$mousePosition.x * 8}px, {$mousePosition.y * 8}px);
-      "
-    ></div>
-    
-    <!-- 동적 기하학적 패턴 2 -->
-    <div 
-      class="absolute inset-0 dynamic-pattern pattern-2"
-      style="
-        background-image: 
-          linear-gradient(45deg, rgba(0,0,0,0.01) 1px, transparent 1px),
-          linear-gradient(-45deg, rgba(0,0,0,0.01) 1px, transparent 1px);
-        background-size: 25px 25px;
-        transform: translate({$mousePosition.x * -4}px, {$mousePosition.y * -4}px) rotate({$mousePosition.x * 0.3}deg);
-      "
-    ></div>
-    
-    <!-- 미묘한 노이즈 텍스처 -->
-    <div 
-      class="absolute inset-0 noise-texture"
-      style="
-        background-image: 
-          radial-gradient(circle at {$mousePosition.x * 100}% {$mousePosition.y * 100}%, 
-            rgba(0,0,0,0.012) 0%, 
-            transparent 25%);
-        background-size: 150px 150px;
-      "
-    ></div>
-    
-    <!-- 부드러운 그라데이션 오버레이 -->
-    <div class="absolute inset-0 gradient-overlay"></div>
-  </div>
-  
-  <!-- 사이드바 -->
-  <Sidebar bind:isOpen={sidebarOpen}>
-    <SidebarSection href="/">
-      Home
-    </SidebarSection>
-    <SidebarSection href="/login">
-      Login
-    </SidebarSection>
-    <SidebarSection href="/dashboard">
-      Dashboard
-    </SidebarSection>
-    <SidebarSection href="/settings">
-      Settings
-    </SidebarSection>
-    
-    <!-- 유저 섹션 - 사이드바 최하단 -->
-    <UserSection />
-  </Sidebar>
-  
-  <!-- 메인 콘텐츠 영역 -->
-  <main class="main-content flex-1" class:sidebar-open={sidebarOpen}>
-    <!-- 콘텐츠 글래스 패널 -->
-    <div class="content-glass">
-      <!-- 미묘한 빛 반사 효과 -->
-      <div 
-        class="absolute inset-0 pointer-events-none opacity-60 rounded-[24px] glass-reflection"
-        style="
-          background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.4) 0%,
-            transparent 25%,
-            transparent 75%,
-            rgba(255, 255, 255, 0.2) 100%
-          );
-        "
-      ></div>
+<div class="app-container" bind:this={containerElement}>
+  <!-- 애플 스타일 상단 네비게이션 -->
+  <nav class="top-nav">
+    <div class="nav-content">
+      <!-- 로고 섹션 -->
+      <div class="logo-section">
+        <a href="/" class="logo-link">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="logo-icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
+            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="logo-text">WorkLog</span>
+        </a>
+      </div>
       
-      <!-- 실제 콘텐츠 -->
-      <div class="relative z-10">
-        <slot />
+      <!-- 중앙 네비게이션 -->
+      <div class="nav-links">
+        {#each navItems as item}
+          <a 
+            href={item.href} 
+            class="nav-link"
+            class:active={$page.url.pathname === item.href}
+          >
+            {item.label}
+          </a>
+        {/each}
+      </div>
+      
+      <!-- 사용자 섹션 -->
+      <div class="user-section">
+        <UserSection />
       </div>
     </div>
+  </nav>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="main-content">
+    <slot />
   </main>
 </div>
 
@@ -142,202 +102,206 @@
   :global(body) {
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: #ffffff;
+    color: #1d1d1f;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  .glass-container {
+  .app-container {
     min-height: 100vh;
-    position: relative;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   
-  /* 동적 패턴 애니메이션 */
-  .dynamic-pattern {
-    transition: transform 0.1s ease-out;
-    will-change: transform;
-  }
-  
-  .pattern-1 {
-    animation: patternFloat1 15s ease-in-out infinite;
-  }
-  
-  .pattern-2 {
-    animation: patternFloat2 20s ease-in-out infinite;
-  }
-  
-  .noise-texture {
-    animation: noiseShift 12s linear infinite;
-  }
-  
-  /* 그라데이션 오버레이 */
-  .gradient-overlay {
-    background: 
-      linear-gradient(45deg, transparent 30%, rgba(0,0,0,0.003) 50%, transparent 70%),
-      linear-gradient(-45deg, transparent 40%, rgba(0,0,0,0.002) 60%, transparent 80%);
-    animation: gradientShimmer 25s linear infinite;
-  }
-  
-  @keyframes patternFloat1 {
-    0%, 100% { 
-      transform: translate(0, 0) rotate(0deg) scale(1);
-    }
-    25% { 
-      transform: translate(2px, -1px) rotate(0.2deg) scale(1.01);
-    }
-    50% { 
-      transform: translate(-1px, 2px) rotate(-0.1deg) scale(0.99);
-    }
-    75% { 
-      transform: translate(-2px, -1px) rotate(0.1deg) scale(1.005);
-    }
-  }
-  
-  @keyframes patternFloat2 {
-    0%, 100% { 
-      transform: translate(0, 0) rotate(0deg) scale(1);
-    }
-    33% { 
-      transform: translate(-1px, 1px) rotate(-0.15deg) scale(1.005);
-    }
-    66% { 
-      transform: translate(1px, -2px) rotate(0.1deg) scale(0.995);
-    }
-  }
-  
-  @keyframes noiseShift {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-1px, 1px); }
-    50% { transform: translate(1px, -1px); }
-    75% { transform: translate(-1px, -1px); }
-    100% { transform: translate(0, 0); }
-  }
-  
-  @keyframes gradientShimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  
-  .main-content {
-    min-height: 100vh;
-    padding: 2rem;
-    position: relative;
-    transition: margin-left 0.3s ease-out;
-  }
-  
-  .main-content.sidebar-open {
-    margin-left: 14rem; /* 사이드바 너비(14rem = 224px) 만큼 밀어냄 */
-  }
-  
-  .content-glass {
-    position: relative;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(20px) saturate(1.1);
-    -webkit-backdrop-filter: blur(20px) saturate(1.1);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 24px;
-    padding: 2rem;
-    min-height: calc(100vh - 4rem);
-    box-shadow: 
-      inset 0 1px 1px rgba(255, 255, 255, 0.8),
-      0 20px 40px rgba(0, 0, 0, 0.06),
-      0 4px 12px rgba(0, 0, 0, 0.02);
-    overflow: hidden;
-  }
-  
-  /* 글래스 반사 효과 */
-  .glass-reflection {
-    animation: glassReflection 4s ease-in-out infinite;
-  }
-  
-  @keyframes glassReflection {
-    0%, 100% { 
-      opacity: 0.4;
-      transform: translateX(0) rotate(0deg);
-    }
-    50% { 
-      opacity: 0.7;
-      transform: translateX(2px) rotate(0.5deg);
-    }
-  }
-  
-  /* 콘텐츠 글래스 상단 하이라이트 */
-  .content-glass::before {
-    content: '';
-    position: absolute;
+  /* 애플 스타일 상단 네비게이션 */
+  .top-nav {
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.8),
-      transparent
-    );
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.04);
   }
   
-  /* 글로벌 텍스트 스타일 - 더 어두운 텍스트 */
-  :global(*) {
-    color: rgba(15, 15, 15, 0.9);
+  .nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
   
-  :global(h1, h2, h3, h4, h5, h6) {
-    color: rgba(10, 10, 10, 0.95);
+  /* 로고 섹션 */
+  .logo-section {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #1d1d1f;
     font-weight: 600;
+    font-size: 18px;
+    transition: opacity 0.2s ease;
+  }
+  
+  .logo-link:hover {
+    opacity: 0.8;
+  }
+  
+  .logo-icon {
+    color: #1d1d1f;
+  }
+  
+  .logo-text {
     letter-spacing: -0.02em;
   }
   
-  :global(a) {
-    color: rgba(25, 25, 25, 0.8);
+  /* 중앙 네비게이션 */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  
+  .nav-link {
+    position: relative;
     text-decoration: none;
-    transition: color 0.2s ease;
+    color: #1d1d1f;
+    font-weight: 400;
+    font-size: 17px;
+    padding: 8px 0;
+    transition: all 0.2s ease;
+    opacity: 0.8;
   }
   
-  :global(a:hover) {
-    color: rgba(10, 10, 10, 1);
+  .nav-link:hover {
+    opacity: 1;
   }
   
-  /* 모바일 전용 스타일 */
-  @media (max-width: 1023px) {
-    .main-content.sidebar-open {
-      margin-left: 0; /* 모바일에서는 오버레이 방식 */
+  .nav-link.active {
+    opacity: 1;
+    font-weight: 500;
+  }
+  
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #007aff;
+    border-radius: 1px;
+    animation: slideIn 0.3s ease;
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  
+  /* 사용자 섹션 */
+  .user-section {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* 메인 콘텐츠 */
+  .main-content {
+    flex: 1;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  /* 모바일 반응형 */
+  @media (max-width: 768px) {
+    .nav-content {
+      padding: 0 16px;
+      height: 56px;
+    }
+    
+    .nav-links {
+      gap: 24px;
+    }
+    
+    .nav-link {
+      font-size: 16px;
+    }
+    
+    .logo-text {
+      font-size: 16px;
     }
     
     .main-content {
-      padding: 1rem;
-    }
-    
-    .content-glass {
-      padding: 1.5rem;
-      border-radius: 16px;
+      padding: 20px 16px;
     }
   }
   
-  /* 데스크톱에서만 사이드바 공간 확보 */
-  @media (min-width: 1024px) {
-    .main-content.sidebar-open {
-      margin-left: 14rem;
+  @media (max-width: 640px) {
+    .nav-links {
+      gap: 16px;
+    }
+    
+    .nav-link {
+      font-size: 15px;
     }
   }
   
   /* 성능 최적화 */
-  .dynamic-pattern,
-  .gradient-overlay,
-  .glass-reflection {
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    transform: translateZ(0);
+  .top-nav {
+    will-change: transform;
   }
   
+  .nav-link {
+    will-change: opacity;
+  }
+  
+  /* 접근성 */
   @media (prefers-reduced-motion: reduce) {
-    :global(*) {
-      animation: none !important;
-      transition: none !important;
+    .nav-link,
+    .logo-link {
+      transition: none;
     }
     
-    .dynamic-pattern {
-      transform: none !important;
+    .nav-link.active::after {
+      animation: none;
+    }
+  }
+  
+  /* 다크 모드 지원 (선택사항) */
+  @media (prefers-color-scheme: dark) {
+    :global(body) {
+      background: #000000;
+      color: #f5f5f7;
+    }
+    
+    .top-nav {
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .logo-link,
+    .nav-link {
+      color: #f5f5f7;
+    }
+    
+    .logo-icon {
+      color: #f5f5f7;
     }
   }
 </style>

@@ -1,19 +1,12 @@
 <!-- src/lib/components/sidebar/user_section.svelte -->
 <script lang="ts">
-  import { getContext } from 'svelte';
   import { goto } from '$app/navigation';
   import { userStore, logout } from '$lib/stores/user';
-  import type { Readable } from 'svelte/store';
   
   // prop 대신 스토어에서 사용자 정보를 가져옴
   $: user = $userStore;
   
-  // 전역 마우스 위치
-  const mousePosition = getContext<Readable<{ x: number; y: number }>>('mousePosition') || 
-    { subscribe: () => () => {} };
-  
-  let isHovering = false;
-  let isLogoutHovering = false;
+  let showDropdown = false;
   
   const handleLoginClick = () => {
     goto('/login');
@@ -23,31 +16,78 @@
     const success = await logout();
     if (success) {
       goto('/login');
+      showDropdown = false;
     }
+  };
+  
+  const toggleDropdown = () => {
+    showDropdown = !showDropdown;
+  };
+  
+  // 외부 클릭시 드롭다운 닫기
+  const handleClickOutside = (node) => {
+    const handleClick = (event) => {
+      if (!node.contains(event.target)) {
+        showDropdown = false;
+      }
+    };
+    
+    document.addEventListener('click', handleClick, true);
+    
+    return {
+      destroy() {
+        document.removeEventListener('click', handleClick, true);
+      }
+    };
   };
 </script>
 
-<div class="user-section">
+<div class="user-section" use:handleClickOutside>
   {#if user}
-    <!-- 로그인된 상태 -->
-    <div 
-      class="relative group"
-      on:mouseenter={() => isHovering = true}
-      on:mouseleave={() => isHovering = false}
-    >
-      <div class="relative transparent-button-container">
-        <!-- 유저 정보 베이스 -->
-        <div 
-          class="relative px-4 py-3 transition-all duration-300 transparent-button blade-button"
-          style="
-            background: rgba(255, 255, 255, {isHovering ? 0.45 : 0.25});
-            backdrop-filter: blur(12px) saturate(1.1);
-            -webkit-backdrop-filter: blur(12px) saturate(1.1);
-            border: 1px solid rgba(255, 255, 255, {isHovering ? 0.55 : 0.35});
-            box-shadow: 
-              inset 0 1px 2px rgba(255, 255, 255, {isHovering ? 0.65 : 0.40}),
-              0 2px 8px rgba(0, 0, 0, {isHovering ? 0.10 : 0.05});
-            transform: {isHovering 
+    <!-- 로그인된 상태 - 애플 스타일 -->
+    <div class="user-menu">
+      <button 
+        class="user-button"
+        on:click={toggleDropdown}
+      >
+        <div class="user-avatar">
+          {user.name?.charAt(0).toUpperCase() || 'U'}
+        </div>
+        <span class="user-name">{user.name || 'User'}</span>
+        <svg 
+          class="chevron" 
+          class:rotated={showDropdown}
+          width="12" 
+          height="12" 
+          viewBox="0 0 24 24" 
+          fill="none"
+        >
+          <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+      
+      {#if showDropdown}
+        <div class="dropdown">
+          <button class="dropdown-item" on:click={handleLogoutClick}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2"/>
+              <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2"/>
+              <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Sign Out
+          </button>
+        </div>
+      {/if}
+    </div>
+  {:else}
+    <!-- 로그인되지 않은 상태 -->
+    <div class="auth-buttons">
+      <button class="sign-in-button" on:click={handleLoginClick}>
+        Sign In
+      </button>
+    </div>
+  {/if}
+</div> 
               ? 'translateY(-1px) scale(1.02)' 
               : 'translateY(0) scale(1)'};
             clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
